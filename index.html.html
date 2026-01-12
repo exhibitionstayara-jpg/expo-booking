@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>حجز مساحات المعارض</title>
+
+  <style>
+    :root{
+      --bg:#fa7014;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+      --shadow:0 14px 40px rgba(0,0,0,.08);
+      --primary:#2563eb;
+      --danger:#ef4444;
+      --ok:#16a34a;
+      --radius:18px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Kufi Arabic", "Noto Sans Arabic", sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    header{
+      padding:18px 14px;
+      text-align:center;
+      border-bottom:1px solid var(--border);
+      background:#fff;
+      position:sticky; top:0; z-index:2;
+    }
+    header h1{ margin:0; font-size:22px; font-weight:900; }
+    header p{ margin:6px 0 0; color:var(--muted); font-size:13px; }
+
+    .wrap{ max-width:1200px; margin:0 auto; padding:16px; }
+    .grid{ display:grid; grid-template-columns:420px 1fr; gap:16px; align-items:start; }
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:14px;
+    }
+    .card h2{ margin:0 0 10px; font-size:18px; font-weight:900; }
+
+    .field{ display:flex; flex-direction:column; gap:6px; margin-bottom:10px; }
+    .field label{ font-size:12px; color:var(--muted); }
+    .field input,.field select{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px 12px;
+      font-size:14px;
+      outline:none;
+      background:#fff;
+    }
+    .field input:focus,.field select:focus{
+      border-color:#c7d2fe;
+      box-shadow:0 0 0 4px rgba(99,102,241,.12);
+    }
+
+    .btnRow{ display:flex; gap:10px; margin-top:8px; }
+    .btn{
+      border:none; border-radius:16px;
+      padding:13px 14px;
+      font-weight:900;
+      cursor:pointer;
+      user-select:none;
+      font-size:14px;
+    }
+    .btn.primary{ background:var(--primary); color:#fff; }
+    .btn.danger{ background:var(--danger); color:#fff; }
+    .btn.gray{ background:#11182710; color:#111827; border:1px solid var(--border); }
+
+    .msg{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:#fff;
+      font-size:14px;
+      display:none;
+      line-height:1.7;
+    }
+    .msg.show{ display:block; }
+    .msg.ok{ border-color:rgba(22,163,74,.35); background:rgba(22,163,74,.08); }
+    .msg.err{ border-color:rgba(239,68,68,.35); background:rgba(239,68,68,.08); }
+
+    .halls{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .hallCard{
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:14px;
+      background:#fff;
+      box-shadow:0 10px 26px rgba(0,0,0,.06);
+    }
+    .hallCard h3{ margin:0; font-size:16px; font-weight:900; text-align:center; }
+    .hallCard button{ width:100%; margin-top:10px; }
+
+    .note{ margin-top:10px; color:var(--muted); font-size:12px; line-height:1.7; }
+
+    /* Modal */
+    .modal.hidden{ display:none; }
+    .modal{
+      position:fixed; inset:0; z-index:99;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .backdrop{ position:absolute; inset:0; background:rgba(0,0,0,.35); }
+    .modalBox{
+      position:relative; z-index:2;
+      width:min(620px, calc(100% - 26px));
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      padding:14px;
+    }
+    .modalHeader{
+      display:flex; justify-content:space-between; align-items:center;
+      padding-bottom:8px; border-bottom:1px solid var(--border);
+    }
+.modalHeader h3{ margin:0; font-size:18px; }
+    .iconBtn{
+      border:none; background:transparent; cursor:pointer;
+      font-size:18px; padding:8px 10px; border-radius:10px;
+    }
+    .iconBtn:hover{ background:#f3f4f6; }
+    .modalSub{ margin:10px 0; color:var(--muted); font-size:13px; line-height:1.7; }
+
+    .payGrid{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+    .btnPay{ background:#f3f4f6; color:#111827; border:1px solid var(--border); }
+
+    .payInfo{
+      margin-top:12px;
+      border:1px solid var(--border);
+      background:#fff;
+      border-radius:14px;
+      padding:12px;
+      display:none;
+    }
+    .payInfo h4{ margin:0 0 8px; font-size:15px; }
+    .payInfo pre{
+      margin:0;
+      white-space:pre-wrap;
+      background:#f9fafb;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:10px;
+      font-size:13px;
+      line-height:1.7;
+    }
+    .linkBtn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      text-decoration:none;
+      border-radius:14px;
+      padding:12px 14px;
+      border:1px solid var(--border);
+      background:#f3f4f6;
+      color:#111827;
+      font-weight:900;
+      margin-top:6px;
+      width:100%;
+    }
+    .payActions{ margin-top:10px; display:flex; gap:10px; }
+    .payActions .btn{ flex:1; }
+
+    .modalFooter{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:12px;
+      border-top:1px solid var(--border);
+      padding-top:10px;
+      line-height:1.7;
+    }
+
+    @media (max-width: 980px){
+      .grid{ grid-template-columns:1fr; }
+      .halls{ grid-template-columns:1fr; }
+      .payGrid{ grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>حجز مساحات المعارض</h1>
+    <p>الحجز + الإلغاء (كلها) تتطلب فتح واتساب (إجباري عملياً) لإكمال العملية</p>
+  </header>
+
+  <div class="wrap">
+    <div class="grid">
+      <!-- Form -->
+      <div class="card">
+        <h2>بيانات الحجز</h2>
+
+        <div class="field">
+          <label>الصالة</label>
+          <select id="hall" required>
+            <option value="">اختر الصالة</option>
+            <option value="HALL 1">HALL 1</option>
+            <option value="HALL 2">HALL 2</option>
+            <option value="HALL 10">HALL 10</option>
+            <option value="HALL 25">HALL 25</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>رقم الستاند</label>
+          <input id="standNo" type="text" placeholder="مثال: 0101" />
+        </div>
+
+        <div class="field">
+          <label>اسم الشركة</label>
+          <input id="companyName" type="text" placeholder="مثال: Ward" />
+        </div>
+
+        <div class="field">
+          <label>رقم الهاتف</label>
+          <input id="phone" type="tel" placeholder="09xxxxxxxx" />
+        </div>
+
+        <div class="field">
+          <label>اختصاص الشركة</label>
+          <input id="specialty" type="text" placeholder="مثال: طاقة" />
+        </div>
+
+        <div class="field">
+          <label>نوع الحجز</label>
+          <select id="bookingType" required>
+            <option value="">اختر نوع الحجز</option>
+            <option value="temp">حجز مؤقت (10 أيام)</option>
+            <option value="final">حجز نهائي</option>
+          </select>
+        </div>
+
+        <div class="btnRow">
+          <button id="bookBtn" type="button" class="btn primary">حجز</button>
+          <button id="cancelBtn" type="button" class="btn danger">إلغاء الحجز</button>
+        </div>
+
+        <div id="msg" class="msg"></div>
+
+        <div class="note">
+          • الحجز المؤقت: يتم مباشرة بعد فتح واتساب ثم تأكيد "فتحت الواتساب ✅".<br>
+          • الحجز النهائي: اختيار طريقة الدفع ثم فتح واتساب ثم تأكيد "فتحت الواتساب ✅".<br>
+          • الإلغاء: فتح واتساب ثم تأكيد "فتحت الواتساب ✅".<br>
+        </div>
+      </div>
+
+      <!-- Halls -->
+      <div class="card">
+        <h2 style="margin:0 0 10px;">مخططات الصالات</h2>
+<div class="halls">
+          <div class="hallCard">
+            <h3>HALL 1</h3>
+            <button type="button" class="btn primary"
+              onclick="window.open(HALL_LINKS['HALL 1'], '_blank')">عرض المخطط</button>
+          </div>
+
+          <div class="hallCard">
+            <h3>HALL 2</h3>
+            <button type="button" class="btn primary"
+              onclick="window.open(HALL_LINKS['HALL 2'], '_blank')">عرض المخطط</button>
+          </div>
+
+          <div class="hallCard">
+            <h3>HALL 10</h3>
+            <button type="button" class="btn primary"
+              onclick="window.open(HALL_LINKS['HALL 10'], '_blank')">عرض المخطط</button>
+          </div>
+
+          <div class="hallCard">
+            <h3>HALL 25</h3>
+            <button type="button" class="btn primary"
+              onclick="window.open(HALL_LINKS['HALL 25'], '_blank')">عرض المخطط</button>
+          </div>
+        </div>
+
+        <div class="note">
+          * المخططات تفتح بتبويب جديد.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Modal (Final only) -->
+  <div id="payModal" class="modal hidden" aria-hidden="true">
+    <div id="modalBackdrop" class="backdrop"></div>
+
+    <div class="modalBox" role="dialog" aria-modal="true">
+      <div class="modalHeader">
+        <h3>طرق الدفع (للحجز النهائي)</h3>
+        <button id="closeModal" class="iconBtn" type="button">✕</button>
+      </div>
+
+      <div class="modalSub">
+        اختر طريقة الدفع ثم اضغط “متابعة”.<br>
+        بعدها سيفتح واتساب (إجباري عملياً) لإكمال الحجز النهائي.
+      </div>
+
+      <div class="payGrid">
+        <button type="button" class="btn btnPay" data-pay="الهرم">الهرم</button>
+        <button type="button" class="btn btnPay" data-pay="الفؤاد">الفؤاد</button>
+        <button type="button" class="btn btnPay" data-pay="شام كاش">شام كاش</button>
+      </div>
+
+      <div id="payInfo" class="payInfo">
+        <h4 id="payTitle">تفاصيل الدفع</h4>
+
+        <div id="transferBox" style="display:none;">
+          <pre id="transferText"></pre>
+        </div>
+
+        <div id="shamBox" style="display:none;">
+          <a id="shamLink" class="linkBtn" target="_blank" rel="noopener">فتح باركود شام كاش (تبويب جديد)</a>
+        </div>
+
+        <div class="payActions">
+          <button id="continueFinalBtn" type="button" class="btn primary">متابعة</button>
+          <button type="button" class="btn gray" onclick="closePayModal()">إغلاق</button>
+        </div>
+
+        <div class="note" style="margin-top:10px;">
+          ⛔ لن يتم تثبيت الحجز النهائي إلا بعد فتح واتساب ثم الضغط على زر “فتحت الواتساب ✅”.
+        </div>
+      </div>
+
+      <div class="modalFooter">
+        ملاحظة: لا يمكن إرسال رسالة واتساب تلقائياً بدون سيرفر/API. هذا الحل يجعل فتح واتساب شرط لإكمال العملية.
+      </div>
+    </div>
+  </div>
+
+  <!-- WhatsApp Required Modal -->
+  <div id="waModal" class="modal hidden" aria-hidden="true">
+    <div class="backdrop"></div>
+
+    <div class="modalBox" role="dialog" aria-modal="true">
+      <div class="modalHeader">
+        <h3>إشعار واتساب (إجباري)</h3>
+        <button class="iconBtn" type="button" onclick="alert('لا يمكن الإغلاق قبل فتح واتساب ✅')">✕</button>
+      </div>
+
+      <div class="modalSub" id="waSubtitle">
+        تم فتح واتساب بتبويب جديد. يرجى إرسال الرسالة ثم العودة هنا واضغط “فتحت الواتساب ✅”.
+      </div>
+
+      <div class="payActions">
+        <a id="waOpenLink" class="btn primary" style="text-align:center; text-decoration:none;" target="_blank" rel="noopener">
+          فتح واتساب مرة ثانية
+        </a>
+        <button id="waDoneBtn" type="button" class="btn gray">فتحت الواتساب ✅</button>
+      </div>
+
+      <div class="note" style="margin-top:10px;">
+        هذا الشرط ينطبق على: الحجز المؤقت + الحجز النهائي + إلغاء الحجز.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    "use strict";
+// ✅ روابط المخططات
+    const HALL_LINKS = {
+      "HALL 1":  "https://drive.google.com/uc?export=download&id=181UWEQvg5RLJ8kDrGSP4ig-RLkfh6llH",
+      "HALL 2":  "https://drive.google.com/uc?export=download&id=1v0oNCsxDu94CRcl8r0Jpi6jPzsxrQ3ar",
+      "HALL 10": "https://drive.google.com/uc?export=download&id=11SD76pw40uY1OM5zFFy3JDEQrMSof0N5",
+      "HALL 25": "https://drive.google.com/uc?export=download&id=16tQHoOEzsKLyPpIrMKLgUy2zdSjBolUZ"
+    };
+    window.HALL_LINKS = HALL_LINKS;
+
+    // ✅ رابط شام كاش (كما هو)
+    const SHAM_CASH_URL = "https://drive.google.com/file/d/1NUrJ4wEh0i-ywCvb2BdmRXTsE-atQ_Eo/view?usp=drivesdk";
+
+    // ✅ رقم واتساب الإدارة
+    const ADMIN_WA = "963958058407"; // 0958058407
+
+    const STORAGE_KEY = "expoBookings_v1";
+    const TEMP_DAYS = 10;
+    const TEMP_MS = TEMP_DAYS * 24 * 60 * 60 * 1000;
+
+    const TRANSFER_TEXT =
+      "الاسم: ماهر مزيد\n" +
+      "رقم الهاتف: 0958058411\n" +
+      "المحافظة: دمشق\n";
+
+    console.log("script loaded ✅");
+    const $ = (id)=>document.getElementById(id);
+
+    const msg = $("msg");
+    const hallEl = $("hall");
+    const standNoEl = $("standNo");
+    const companyNameEl = $("companyName");
+    const phoneEl = $("phone");
+    const specialtyEl = $("specialty");
+    const bookingTypeEl = $("bookingType");
+
+    const bookBtn = $("bookBtn");
+    const cancelBtn = $("cancelBtn");
+
+    const payModal = $("payModal");
+    const modalBackdrop = $("modalBackdrop");
+    const closeModalBtn = $("closeModal");
+    const payButtons = document.querySelectorAll(".btnPay");
+
+    const payInfo = $("payInfo");
+    const payTitle = $("payTitle");
+    const shamBox = $("shamBox");
+    const shamLink = $("shamLink");
+    const transferBox = $("transferBox");
+    const transferText = $("transferText");
+    const continueFinalBtn = $("continueFinalBtn");
+
+    const waModal = $("waModal");
+    const waOpenLink = $("waOpenLink");
+    const waDoneBtn = $("waDoneBtn");
+    const waSubtitle = $("waSubtitle");
+
+    let pending = null; // العملية المعلقة (book-temp / book-final / cancel)
+    let selectedPay = null;
+
+    function setMsg(text, type){
+      msg.className = "msg " + (type || "");
+      msg.textContent = text || "";
+      msg.classList.add("show");
+    }
+    function clearMsg(){
+      msg.textContent = "";
+      msg.className = "msg";
+      msg.classList.remove("show");
+    }
+
+    function loadBookings(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : {};
+      }catch(e){
+        console.error("loadBookings error:", e);
+        return {};
+      }
+    }
+    function saveBookings(data){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+    function normalizeStandNo(v){ return (v || "").trim(); }
+    function bookingId(hall, standNo){ return hall + "__" + standNo; }
+
+    function cleanupExpiredTempBookings(){
+      const db = loadBookings();
+      const now = Date.now();
+      let changed = false;
+      Object.keys(db).forEach((key)=>{
+        const b = db[key];
+        if(b && b.type === "temp" && b.expiresAt && now > b.expiresAt){
+          delete db[key];
+          changed = true;
+        }
+      });
+      if(changed) saveBookings(db);
+    }
+
+    function validateForm(needFull=true){
+      const hall = (hallEl.value || "").trim();
+      const standNo = normalizeStandNo(standNoEl.value || "");
+
+      if(!hall) return { ok:false, err:"اختر الصالة" };
+      if(!standNo) return { ok:false, err:"اكتب رقم الستاند" };
+
+      if(!needFull){
+        return { ok:true, data:{ hall, standNo } };
+      }
+
+      const companyName = (companyNameEl.value || "").trim();
+      const phone = (phoneEl.value || "").trim();
+      const specialty = (specialtyEl.value || "").trim();
+      const type = (bookingTypeEl.value || "").trim();
+
+      if(!companyName) return { ok:false, err:"اكتب اسم الشركة" };
+      if(!phone) return { ok:false, err:"اكتب رقم الهاتف" };
+      if(!specialty) return { ok:false, err:"اكتب اختصاص الشركة" };
+      if(!type) return { ok:false, err:"اختر نوع الحجز" };
+return { ok:true, data:{ hall, standNo, companyName, phone, specialty, type } };
+    }
+
+    function buildWhatsAppLink(kind, data, payMethod){
+      const now = new Date().toLocaleString("ar-SY");
+      let title = "";
+      if(kind === "book-temp") title = "طلب حجز مؤقت";
+      if(kind === "book-final") title = "طلب حجز نهائي";
+      if(kind === "cancel") title = "طلب إلغاء حجز";
+
+      const lines = [
+        title + " (المعرض الصناعي)",
+        "---------------------------",
+        "الوقت: " + now,
+        "الصالة: " + (data.hall || ""),
+        "رقم الستاند: " + (data.standNo || "")
+      ];
+
+      if(kind !== "cancel"){
+        lines.push("اسم الشركة: " + (data.companyName || ""));
+        lines.push("هاتف: " + (data.phone || ""));
+        lines.push("الاختصاص: " + (data.specialty || ""));
+        lines.push("نوع الحجز: " + (data.type === "temp" ? ("مؤقت (" + TEMP_DAYS + " أيام)") : "نهائي"));
+      }
+
+      if(kind === "book-final"){
+        lines.push("طريقة الدفع: " + (payMethod || "—"));
+      }
+
+      lines.push("---------------------------");
+
+      const text = encodeURIComponent(lines.join("\n"));
+      return "https://wa.me/" + ADMIN_WA + "?text=" + text;
+    }
+
+    function openPayModal(){
+      payModal.classList.remove("hidden");
+      payInfo.style.display = "none";
+      selectedPay = null;
+    }
+    function closePayModal(){
+      payModal.classList.add("hidden");
+      selectedPay = null;
+      payInfo.style.display = "none";
+      shamBox.style.display = "none";
+      transferBox.style.display = "none";
+    }
+    window.closePayModal = closePayModal;
+
+    function showPayDetails(method){
+      selectedPay = method;
+      payInfo.style.display = "block";
+      payTitle.textContent = "تفاصيل الدفع: " + method;
+
+      shamBox.style.display = "none";
+      transferBox.style.display = "none";
+
+      if(method === "شام كاش"){
+        shamLink.href = SHAM_CASH_URL; // ✅ رابط كما هو
+        shamBox.style.display = "block";
+      }else if(method === "الهرم"){
+        transferText.textContent = "بيانات تحويل الهرم:\n" + TRANSFER_TEXT;
+        transferBox.style.display = "block";
+      }else if(method === "الفؤاد"){
+        transferText.textContent = "بيانات تحويل الفؤاد:\n" + TRANSFER_TEXT;
+        transferBox.style.display = "block";
+      }
+    }
+
+    function saveBookingRecord(data, payment){
+      const db = loadBookings();
+      const id = bookingId(data.hall, data.standNo);
+      const now = Date.now();
+
+      db[id] = {
+        hall: data.hall,
+        standNo: data.standNo,
+        companyName: data.companyName,
+        phone: data.phone,
+        specialty: data.specialty,
+        type: data.type,
+        payment: payment || null,
+        createdAt: now,
+        expiresAt: data.type === "temp" ? (now + TEMP_MS) : null
+      };
+
+      saveBookings(db);
+    }
+
+    function deleteBookingRecord(hall, standNo){
+      const db = loadBookings();
+      const id = bookingId(hall, standNo);
+      if(!db[id]) return false;
+      delete db[id];
+      saveBookings(db);
+      return true;
+    }
+
+    function openWhatsAppRequired(kind, waUrl){
+      waOpenLink.href = waUrl;
+      window.open(waUrl, "_blank"); // فتح تلقائي (بسبب ضغط زر)
+      waSubtitle.textContent =
+        "تم فتح واتساب بتبويب جديد. يرجى إرسال الرسالة ثم العودة هنا واضغط “فتحت الواتساب ✅” لإكمال العملية.";
+      waModal.classList.remove("hidden");
+    }
+
+    function onBookClick(){
+      console.log("book clicked ✅");
+      clearMsg();
+      cleanupExpiredTempBookings();
+
+      const v = validateForm(true);
+      if(!v.ok){ setMsg(v.err, "err"); return; }
+
+      const db = loadBookings();
+      const id = bookingId(v.data.hall, v.data.standNo);
+      if(db[id]){
+        if(db[id].type === "final"){ setMsg("هذا الستاند محجوز نهائيًا بالفعل ❌", "err"); return; }
+        if(db[id].type === "temp"){ setMsg("هذا الستاند محجوز مؤقتاً حالياً ❌", "err"); return; }
+      }
+// مؤقت => واتساب إلزامي ثم تثبيت
+      if(v.data.type === "temp"){
+        pending = { kind:"book-temp", data:v.data, pay:null };
+        const waUrl = buildWhatsAppLink("book-temp", v.data, null);
+        openWhatsAppRequired("book-temp", waUrl);
+        return;
+      }
+
+      // نهائي => اختار دفع أولاً
+      pending = { kind:"book-final", data:v.data, pay:null };
+      openPayModal();
+    }
+
+    function continueFinalFlow(){
+      if(!pending || pending.kind !== "book-final"){ setMsg("لا يوجد حجز نهائي قيد المتابعة", "err"); return; }
+      if(!selectedPay){ setMsg("اختر طريقة الدفع أولاً", "err"); return; }
+
+      pending.pay = selectedPay;
+      const waUrl = buildWhatsAppLink("book-final", pending.data, selectedPay);
+
+      closePayModal();
+      openWhatsAppRequired("book-final", waUrl);
+    }
+
+    function onCancelClick(){
+      console.log("cancel clicked ✅");
+      clearMsg();
+      cleanupExpiredTempBookings();
+
+      const v = validateForm(false);
+      if(!v.ok){ setMsg(v.err, "err"); return; }
+
+      // لازم يكون محجوز حتى نلغي
+      const db = loadBookings();
+      const id = bookingId(v.data.hall, v.data.standNo);
+      if(!db[id]){
+        setMsg("هذا الستاند غير محجوز أساساً ✅", "ok");
+        return;
+      }
+
+      pending = { kind:"cancel", data:{ hall:v.data.hall, standNo:v.data.standNo }, pay:null };
+      const waUrl = buildWhatsAppLink("cancel", pending.data, null);
+      openWhatsAppRequired("cancel", waUrl);
+    }
+
+    function onWaDone(){
+      if(!pending){
+        setMsg("لا توجد عملية معلّقة", "err");
+        return;
+      }
+
+      // ✅ الآن نثبت العملية (بعد فتح واتساب)
+      if(pending.kind === "book-temp"){
+        saveBookingRecord(pending.data, null);
+        waModal.classList.add("hidden");
+        setMsg("تم الحجز المؤقت ✅ لمدة " + TEMP_DAYS + " أيام (بعد إشعار واتساب)", "ok");
+        pending = null;
+        return;
+      }
+
+      if(pending.kind === "book-final"){
+        saveBookingRecord(Object.assign({}, pending.data, { type:"final" }), pending.pay);
+        waModal.classList.add("hidden");
+        setMsg("تم تثبيت الحجز النهائي ✅ — طريقة الدفع: " + pending.pay + " (بعد إشعار واتساب)", "ok");
+        pending = null;
+        return;
+      }
+
+      if(pending.kind === "cancel"){
+        const ok = deleteBookingRecord(pending.data.hall, pending.data.standNo);
+        waModal.classList.add("hidden");
+        setMsg(ok ? "تم إلغاء الحجز ✅ (بعد إشعار واتساب)" : "لم يتم العثور على الحجز لإلغائه", ok ? "ok" : "err");
+        pending = null;
+        return;
+      }
+    }
+
+    // bind
+    cleanupExpiredTempBookings();
+
+    bookBtn.addEventListener("click", onBookClick);
+    cancelBtn.addEventListener("click", onCancelClick);
+
+    closeModalBtn.addEventListener("click", closePayModal);
+    modalBackdrop.addEventListener("click", closePayModal);
+
+    payButtons.forEach((btn)=>{
+      btn.addEventListener("click", ()=>{
+        const method = (btn.getAttribute("data-pay") || "").trim();
+        showPayDetails(method);
+      });
+    });
+
+    continueFinalBtn.addEventListener("click", continueFinalFlow);
+    waDoneBtn.addEventListener("click", onWaDone);
+  </script>
+</body>
+</html>
